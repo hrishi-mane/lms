@@ -4,8 +4,12 @@ import com.teamoffour.lms.domain.BorrowingPolicy;
 import org.springframework.stereotype.Service;
 
 
+
+
 @Service("PREMIUM")
 public class PremiumPlan implements IMembershipPlan{
+    private static final BorrowingPolicy POLICY =
+            new BorrowingPolicy(10, 0.25, 30);
 
     public PremiumPlan() {
 
@@ -18,7 +22,7 @@ public class PremiumPlan implements IMembershipPlan{
 
     @Override
     public BorrowingPolicy getBorrowingPolicy() {
-        return new BorrowingPolicy(10, 0.25, 30);
+        return POLICY;
     }
 
     @Override

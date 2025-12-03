@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.rmi.ServerException;
+
 
 @RestController
 public class ReservationController {
@@ -25,7 +27,7 @@ public class ReservationController {
     }
 
     @PostMapping("/lms/processReservationPickup/{reservationId}")
-    public String processReservationPickup(@PathVariable Long reservationId) {
+    public String processReservationPickup(@PathVariable Long reservationId) throws ServerException {
         return reservationInterface.processReservationPickup(reservationId);
     }
 
