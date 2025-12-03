@@ -1,6 +1,7 @@
 package com.teamoffour.lms.domain;
 
 import com.teamoffour.lms.domain.bookstates.Available;
+import com.teamoffour.lms.domain.bookstates.Lost;
 import com.teamoffour.lms.domain.bookstates.State;
 import lombok.Getter;
 import lombok.Setter;
@@ -75,5 +76,12 @@ public class Book {
         return getActiveReservation().size() + getQueuedReservations().size() > 0;
     }
 
+    public void markAsLost() {
+        currentState = new Lost();
+    }
+
+    public void markAsFound() {
+        currentState = new Available();
+    }
 
 }
