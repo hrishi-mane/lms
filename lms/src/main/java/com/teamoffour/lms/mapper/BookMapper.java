@@ -11,8 +11,6 @@ public class BookMapper {
     public Book convertAddBookRequestToBook(AddBookRequest addBookRequest) {
         Book book = new Book();
 
-        String randomId = String.valueOf((long)(Math.random() * 1_000_000_0000L));
-        book.setId(Long.valueOf(randomId));
         book.setTitle(addBookRequest.getTitle());
         book.setAuthor(addBookRequest.getAuthor());
         book.setCategory(addBookRequest.getCategory());
