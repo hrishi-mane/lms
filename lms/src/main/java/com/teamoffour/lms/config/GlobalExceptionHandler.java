@@ -21,6 +21,6 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now().toString()
         );
 
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
