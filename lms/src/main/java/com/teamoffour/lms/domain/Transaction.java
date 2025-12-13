@@ -2,12 +2,16 @@ package com.teamoffour.lms.domain;
 
 import com.teamoffour.lms.domain.enums.TransactionStatus;
 import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Random;
 
 @Getter
+@Slf4j
 public class Transaction {
     private final Long id;
     private final LocalDateTime borrowDate;
@@ -18,7 +22,7 @@ public class Transaction {
 
 
     public Transaction(Member member, Book book) {
-        id = (long) (Math.random() * 1_000_000_0000L);
+        id = (new Random().nextLong() * 1_000_000_0000L);
         this.borrowDate = LocalDateTime.now();
         this.transactionStatus = TransactionStatus.ACTIVE;
         this.member = member;
@@ -51,7 +55,7 @@ public class Transaction {
         if (fineAmount > 0) {
             Fine fine = new Fine(this, fineAmount);
 
-            System.out.println("Fine calculated: $" + fineAmount + " for transaction ID " + id);
+            log.info("Fine calculated: $" + fineAmount + " for transaction ID " + id);
             transactionStatus = TransactionStatus.FINE_PENDING;
             return fine;
         }

@@ -6,14 +6,11 @@ import org.springframework.stereotype.Service;
 
 
 
-@Service("PREMIUM")
+@Service("premiumPlan")
 public class PremiumPlan implements IMembershipPlan{
     private static final BorrowingPolicy POLICY =
             new BorrowingPolicy(10, 0.25, 30);
 
-    public PremiumPlan() {
-
-    }
 
     @Override
     public Integer getMaxReservationsAllowed() {

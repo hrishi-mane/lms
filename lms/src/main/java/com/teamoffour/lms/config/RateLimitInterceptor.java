@@ -72,9 +72,9 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     public void cleanupOldEntries() {
         long fiveMinutesAgo = System.currentTimeMillis() - 300000;
 
-        requestTimestamps.forEach((clientId, timestamps) -> {
-            timestamps.removeIf(timestamp -> timestamp < fiveMinutesAgo);
-        });
+        requestTimestamps.forEach((clientId, timestamps) ->
+            timestamps.removeIf(timestamp -> timestamp < fiveMinutesAgo)
+        );
 
         // Remove empty entries
         requestTimestamps.entrySet().removeIf(

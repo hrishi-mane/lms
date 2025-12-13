@@ -9,6 +9,7 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 
 @Getter
@@ -27,7 +28,7 @@ public class Member{
     private List<Notification> notifications;
 
     public Member() {
-        this.id = Long.valueOf(String.valueOf((long)(Math.random() * 1_000_000_0000L)));
+        this.id = Long.valueOf(String.valueOf(new Random().nextLong() * 1_000_000_0000L));
         transactions = new ArrayList<>();
         reservations = new ArrayList<>();
         notifications = new ArrayList<>();

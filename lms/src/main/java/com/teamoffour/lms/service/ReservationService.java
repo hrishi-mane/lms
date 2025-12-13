@@ -10,12 +10,14 @@ import com.teamoffour.lms.repository.BookRepository;
 import com.teamoffour.lms.repository.MemberRepository;
 import com.teamoffour.lms.repository.ReservationRepository;
 import com.teamoffour.lms.service.observer.NotificationManager;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.rmi.ServerException;
 import java.util.List;
 
 @Service
+@Slf4j
 public class ReservationService implements ReservationInterface {
     private final MemberRepository memberRepository;
     private final BookRepository bookRepository;
@@ -87,7 +89,7 @@ public class ReservationService implements ReservationInterface {
         );
 
         notificationManager.notifyObservers(notification);
-        System.out.println("📧 Reservation confirmation sent");
+        log.info(" Reservation confirmation sent");
 
         // 9. Return response
         return "Reservation created with id:"

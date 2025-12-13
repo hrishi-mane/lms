@@ -6,6 +6,7 @@ import com.teamoffour.lms.repository.BookRepository;
 import com.teamoffour.lms.repository.MemberRepository;
 import com.teamoffour.lms.repository.TransactionRepository;
 import com.teamoffour.lms.service.observer.NotificationManager;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@Slf4j
 public class TransactionService implements TransactionInterface {
     private final MemberRepository memberRepository;
     private final BookRepository bookRepository;
@@ -88,7 +90,7 @@ public class TransactionService implements TransactionInterface {
         List<Reservation> queuedReservations = book.getQueuedReservations();
 
         if (!queuedReservations.isEmpty()) {
-            //Get the first queued reservation;
+
             Reservation firstQueuedReservation = queuedReservations.get(0);
             Member reservedMember = firstQueuedReservation.getMember();
 
@@ -128,7 +130,7 @@ public class TransactionService implements TransactionInterface {
             );
             notificationType = NotificationType.OVERDUE;
 
-            System.out.println("⚠️ OVERDUE RETURN - Fine calculated: $" + fine.getAmount());
+            log.info(" OVERDUE RETURN - Fine calculated: $" + fine.getAmount());
         } else {
             message = String.format(
                     "Book '%s' returned successfully ON TIME. " +
@@ -138,7 +140,7 @@ public class TransactionService implements TransactionInterface {
             );
             notificationType = NotificationType.RETURNED;
 
-            System.out.println("✅ ON-TIME RETURN - No fine");
+            log.info(" ON-TIME RETURN - No fine");
         }
         Member member = transaction.getMember();
 

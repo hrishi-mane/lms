@@ -7,11 +7,17 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
-    @Autowired
-    private RequestLoggingInterceptor requestLoggingInterceptor;
+
+    private final RequestLoggingInterceptor requestLoggingInterceptor;
+
+
+    private final RateLimitInterceptor rateLimitInterceptor;
 
     @Autowired
-    private RateLimitInterceptor rateLimitInterceptor;
+    public WebMvcConfig(RequestLoggingInterceptor requestLoggingInterceptor, RateLimitInterceptor rateLimitInterceptor) {
+        this.requestLoggingInterceptor = requestLoggingInterceptor;
+        this.rateLimitInterceptor = rateLimitInterceptor;
+    }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {

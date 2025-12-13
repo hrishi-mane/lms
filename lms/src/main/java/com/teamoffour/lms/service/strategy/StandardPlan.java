@@ -4,14 +4,12 @@ import com.teamoffour.lms.domain.BorrowingPolicy;
 import org.springframework.stereotype.Service;
 
 
-@Service("STANDARD")
+@Service("standardPlan")
 public class StandardPlan implements IMembershipPlan {
 
     private static final BorrowingPolicy POLICY =
             new BorrowingPolicy(10, 0.25, 30);
 
-    public StandardPlan() {
-    }
 
 
     @Override

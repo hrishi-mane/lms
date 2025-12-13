@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 
 @Getter
@@ -26,7 +27,7 @@ public class Book {
 
 
     public Book() {
-        this.id = (long)(Math.random() * 1_000_000_0000L);
+        this.id = (new Random().nextLong() * 1_000_000_0000L);
         reservations = new ArrayList<>();
         transactions = new ArrayList<>();
         currentState = new Available();

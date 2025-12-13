@@ -1,5 +1,6 @@
 package com.teamoffour.lms.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -16,6 +17,7 @@ import java.util.Arrays;
  */
 @Aspect
 @Component
+@Slf4j
 public class LoggerAdvice {
 
     private static final Logger logger = LoggerFactory.getLogger(LoggerAdvice.class);
@@ -35,7 +37,7 @@ public class LoggerAdvice {
         Object[] args = joinPoint.getArgs();
 
         // Log entry
-        logger.info("→ ENTERING: {} with args: {}", methodName, Arrays.toString(args));
+        log.info("→ ENTERING: {} with args: {}", methodName, Arrays.toString(args));
 
         long startTime = System.currentTimeMillis();
 
@@ -54,7 +56,7 @@ public class LoggerAdvice {
             long executionTime = System.currentTimeMillis() - startTime;
 
             // Log exit (exception)
-            logger.error("✗ EXCEPTION in: {} | Time: {} ms | Error: {}",
+            log.error("✗ EXCEPTION in: {} | Time: {} ms | Error: {}",
                     methodName, executionTime, e.getMessage());
 
             throw e;
