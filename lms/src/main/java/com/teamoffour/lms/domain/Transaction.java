@@ -1,25 +1,25 @@
 package com.teamoffour.lms.domain;
 
 import com.teamoffour.lms.domain.enums.TransactionStatus;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Data;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Random;
 
-@Getter
-@Slf4j
+@Data
 public class Transaction {
-    private final Long id;
-    private final LocalDateTime borrowDate;
+    private static final Logger log = LoggerFactory.getLogger(Transaction.class);
+
+    private Long id;
+    private LocalDateTime borrowDate;
     private LocalDateTime returnedDate;
     private TransactionStatus transactionStatus;
-    private final Member member;
-    private final Book book;
-
+    private Member member;
+    private Book book;
 
     public Transaction(Member member, Book book) {
         id = (new Random().nextLong() * 1_000_000_0000L);
@@ -41,7 +41,6 @@ public class Transaction {
         if (isOverdue()) {
             return ChronoUnit.DAYS.between(calculateDueDate(), LocalDate.now());
         }
-
         return 0;
     }
 
@@ -54,14 +53,12 @@ public class Transaction {
 
         if (fineAmount > 0) {
             Fine fine = new Fine(this, fineAmount);
-
-            log.info("Fine calculated: $" + fineAmount + " for transaction ID " + id);
+            log.info("Fine calculated: ${} for transaction ID {}", fineAmount, id);
             transactionStatus = TransactionStatus.FINE_PENDING;
             return fine;
         }
 
         return null;
-
     }
 
     public void markReturned() {
@@ -75,5 +72,4 @@ public class Transaction {
     public boolean isActive() {
         return TransactionStatus.ACTIVE.equals(transactionStatus);
     }
-
 }

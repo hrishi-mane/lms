@@ -1,9 +1,8 @@
 package com.teamoffour.lms.service.dto;
 
+import lombok.Data;
 
-import lombok.Getter;
-
-@Getter
+@Data
 public class AddBookRequest {
     private String isbn;
     private String title;

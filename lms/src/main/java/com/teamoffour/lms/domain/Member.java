@@ -1,20 +1,16 @@
 package com.teamoffour.lms.domain;
 
-
 import com.teamoffour.lms.domain.enums.TransactionStatus;
 import com.teamoffour.lms.service.strategy.IMembershipPlan;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-
-@Getter
-@Setter
-public class Member{
+@Data
+public class Member {
     private Long id;
     private String userName;
     private String password;
@@ -55,7 +51,6 @@ public class Member{
     }
 
     public boolean canReserve() {
-        // Limit based on membership plan
         int reservationLimit = membershipPlan.getMaxReservationsAllowed();
         return getActiveReservationCount() + getQueuedReservationCount() < reservationLimit;
     }
@@ -63,9 +58,8 @@ public class Member{
     public boolean hasReservationFor(Book book) {
         return reservations.stream()
                 .anyMatch(r -> r.isActive() && r.getBook().getId().equals(book.getId())
-                || r.isQueued() && r.getBook().getId().equals(book.getId()));
+                        || r.isQueued() && r.getBook().getId().equals(book.getId()));
     }
-
 
     public int getActiveBorrowCount() {
         return getActiveTransaction().size();
@@ -83,7 +77,6 @@ public class Member{
     public void receiveNotification(Notification notification) {
         notifications.add(notification);
     }
-
 
     public void updateReservation(Reservation reservation) {
         for (int i = 0; i < reservations.size(); i++) {

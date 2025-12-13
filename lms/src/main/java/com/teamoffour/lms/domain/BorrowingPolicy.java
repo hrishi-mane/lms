@@ -1,17 +1,16 @@
 package com.teamoffour.lms.domain;
 
-import lombok.Getter;
+import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
-
-@Getter
+@Data
 public class BorrowingPolicy {
-    private final Integer borrowingLimit;
-    private final Double fineRatePerDay;
-    private final Integer borrowingDurationInDays;
+    private Integer borrowingLimit;
+    private Double fineRatePerDay;
+    private Integer borrowingDurationInDays;
 
     public BorrowingPolicy(Integer borrowingLimit, Double fineRatePerDay, Integer borrowingDurationInDays) {
         this.borrowingLimit = borrowingLimit;
@@ -26,12 +25,9 @@ public class BorrowingPolicy {
         return borrowedDate.plusDays(borrowingDurationInDays);
     }
 
-
     public double calculateFine(LocalDateTime borrowedDate) {
         long daysOverdue = ChronoUnit.DAYS.between(borrowedDate, LocalDate.now());
         long chargeableDays = Math.max(0, daysOverdue);
-
         return chargeableDays * fineRatePerDay;
     }
-
 }
