@@ -1,25 +1,29 @@
 package com.teamoffour.lms.domain;
 
 import com.teamoffour.lms.domain.enums.ReservationStatus;
-import lombok.Getter;
+import lombok.Data;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Random;
 
-@Getter
+@Data
 public class Reservation {
-    private final Long id;
-    private final Member member;
-    private final Book book;
-    private final LocalDate reservationDate;
+    private static final Logger log = LoggerFactory.getLogger(Reservation.class);
+
+    private Long id;
+    private Member member;
+    private Book book;
+    private LocalDate reservationDate;
     private LocalDate expiryDate;
     private ReservationStatus status;
 
-    // Configuration: Reservation valid for 7 days
     private static final int RESERVATION_VALIDITY_DAYS = 2;
 
     public Reservation(Member member, Book book) {
-        this.id = Long.valueOf(String.valueOf((long)(Math.random() * 1_000_000_0000L)));
+        this.id = Long.valueOf(String.valueOf(new Random().nextLong() * 1_000_000_0000L));
         this.member = member;
         this.book = book;
         this.reservationDate = LocalDate.now();
@@ -34,7 +38,6 @@ public class Reservation {
 
         this.status = ReservationStatus.ACTIVE;
         this.expiryDate = LocalDateTime.now().plusDays(RESERVATION_VALIDITY_DAYS).toLocalDate();
-
     }
 
     public boolean isExpired() {
@@ -48,7 +51,6 @@ public class Reservation {
     public boolean isQueued() {
         return status == ReservationStatus.QUEUED;
     }
-
 
     public void fulfill() {
         if (status != ReservationStatus.ACTIVE) {
@@ -66,10 +68,8 @@ public class Reservation {
         }
 
         this.status = ReservationStatus.EXPIRED;
-
-        System.out.println("⏰ Reservation #" + id + " expired");
+        log.info("Reservation #{} expired", id);
     }
-
 
     public long getDaysUntilExpiry() {
         if (isExpired()) {

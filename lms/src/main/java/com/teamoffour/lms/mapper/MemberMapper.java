@@ -10,8 +10,6 @@ import java.time.LocalDate;
 @Service
 public class MemberMapper {
 
-    public MemberMapper() {
-    }
 
     public Member convertAddMemberRequestToMember(RegisterMemberRequest registerMemberRequest, IMembershipPlan plan) {
         Member member = new Member();

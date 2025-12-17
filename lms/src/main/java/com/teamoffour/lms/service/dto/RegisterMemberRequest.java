@@ -2,10 +2,9 @@ package com.teamoffour.lms.service.dto;
 
 import com.teamoffour.lms.domain.enums.AddOns;
 import com.teamoffour.lms.domain.enums.PlanType;
-import lombok.Getter;
+import lombok.Data;
 
-
-@Getter
+@Data
 public class RegisterMemberRequest {
     private String userName;
     private String password;

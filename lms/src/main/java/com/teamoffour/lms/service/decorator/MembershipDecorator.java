@@ -6,7 +6,7 @@ import com.teamoffour.lms.service.strategy.IMembershipPlan;
 public abstract class MembershipDecorator implements IMembershipPlan {
     protected IMembershipPlan wrapped;
 
-    public MembershipDecorator(IMembershipPlan wrapped) {
+    protected MembershipDecorator(IMembershipPlan wrapped) {
         this.wrapped = wrapped;
     }
 

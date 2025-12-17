@@ -3,15 +3,13 @@ package com.teamoffour.lms.domain;
 import com.teamoffour.lms.domain.bookstates.Available;
 import com.teamoffour.lms.domain.bookstates.Lost;
 import com.teamoffour.lms.domain.bookstates.State;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
-
-@Getter
-@Setter
+@Data
 public class Book {
     private Long id;
     private String isbn;
@@ -24,9 +22,8 @@ public class Book {
     private List<Transaction> transactions;
     private State currentState;
 
-
     public Book() {
-        this.id = (long)(Math.random() * 1_000_000_0000L);
+        this.id = (new Random().nextLong() * 1_000_000_0000L);
         reservations = new ArrayList<>();
         transactions = new ArrayList<>();
         currentState = new Available();
@@ -84,5 +81,4 @@ public class Book {
     public void markAsFound() {
         currentState = new Available();
     }
-
 }
