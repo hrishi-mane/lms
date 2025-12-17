@@ -1,5 +1,6 @@
 package com.teamoffour.lms.controller;
 
+import com.teamoffour.lms.domain.Book;
 import com.teamoffour.lms.mapper.BookMapper;
 import com.teamoffour.lms.repository.BookRepository;
 import com.teamoffour.lms.service.command.AddBookCommand;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -25,6 +27,11 @@ public class BookController {
         this.bookMapper = bookMapper;
         this.bookRepository = bookRepository;
         this.commandManager = commandManager;
+    }
+
+    @GetMapping(value="/lms/getAllBooks")
+    public List<Book> getAllBooks() {
+        return bookRepository.getAllBooks();
     }
 
     @PostMapping(value = "/lms/addBook")

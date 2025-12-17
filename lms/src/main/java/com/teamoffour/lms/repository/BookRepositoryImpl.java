@@ -3,9 +3,7 @@ package com.teamoffour.lms.repository;
 import com.teamoffour.lms.domain.Book;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 
 @Service
@@ -21,5 +19,10 @@ public class BookRepositoryImpl implements BookRepository {
     public Long save(Book book) {
         books.put(book.getId(), book);
         return book.getId();
+    }
+
+    @Override
+    public List<Book> getAllBooks() {
+        return new ArrayList<>(books.values());
     }
 }
