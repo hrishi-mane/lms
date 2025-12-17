@@ -36,7 +36,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
             return false; // Block request
         }
 
-        recordRequest(clientId); // ✅ Record this request
+        recordRequest(clientId); //Record this request
         return true; // Allow request
     }
 
