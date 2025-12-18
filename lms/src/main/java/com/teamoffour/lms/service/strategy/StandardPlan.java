@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 public class StandardPlan implements IMembershipPlan {
 
     private static final BorrowingPolicy POLICY =
-            new BorrowingPolicy(10, 0.25, 30);
+            new BorrowingPolicy(5, 0.25, 30);
 
 
 
