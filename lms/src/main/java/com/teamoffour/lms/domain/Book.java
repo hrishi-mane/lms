@@ -1,5 +1,7 @@
 package com.teamoffour.lms.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.teamoffour.lms.domain.bookstates.Available;
 import com.teamoffour.lms.domain.bookstates.Lost;
 import com.teamoffour.lms.domain.bookstates.State;
@@ -10,6 +12,7 @@ import java.util.List;
 import java.util.Random;
 
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Book {
     private Long id;
     private String isbn;
@@ -29,6 +32,8 @@ public class Book {
         currentState = new Available();
     }
 
+
+    @JsonIgnore
     public boolean isAvailable() {
         return currentState.isAvailable();
     }
@@ -62,10 +67,13 @@ public class Book {
         }
     }
 
+    @JsonIgnore
     public List<Reservation> getActiveReservation() {
         return reservations.stream().filter(Reservation::isActive).toList();
     }
 
+
+    @JsonIgnore
     public List<Reservation> getQueuedReservations() {
         return reservations.stream().filter(Reservation::isQueued).toList();
     }
