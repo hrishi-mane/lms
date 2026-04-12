@@ -6,6 +6,7 @@ import com.teamoffour.lms.repository.BookRepository;
 import com.teamoffour.lms.repository.MemberRepository;
 import com.teamoffour.lms.repository.TransactionRepository;
 import com.teamoffour.lms.service.observer.NotificationManager;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import java.util.List;
 @Service
 @Slf4j
 public class TransactionService implements TransactionInterface {
+
     private final MemberRepository memberRepository;
     private final BookRepository bookRepository;
     private final TransactionRepository transactionRepository;
@@ -33,17 +35,31 @@ public class TransactionService implements TransactionInterface {
         this.notificationManager = notificationManager;
     }
 
+    /**
+     * Borrow a book for a member.
+     *
+     * Circuit breaker "bookService" guards the book repository interaction.
+     * If the repository call fails (e.g. database unreachable in a future
+     * persistent implementation), the circuit opens and the fallback is invoked
+     * rather than letting errors cascade.
+     *
+     * States: CLOSED → OPEN (after 50% failures in 5-call window)
+     *         OPEN   → HALF_OPEN (after 10 s wait)
+     *         HALF_OPEN → CLOSED (if 2 trial calls succeed)
+     */
+    @CircuitBreaker(name = "bookService", fallbackMethod = "borrowBookFallback")
     @Override
     public String borrowBook(Long bookId, Long memberId) throws ServerException {
         Member member = memberRepository.findMemberById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Member not found with ID: " + memberId));
 
         Book book = bookRepository.findBookById(bookId)
-                .orElseThrow(() -> new IllegalArgumentException("Book not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Book not found with ID: " + bookId));
 
         if (!book.isAvailable() || book.hasAnyOngoingReservation()) {
             throw new ServerException(
-                    "Book '" + book.getTitle() + "' is not available. Please reserve the book to get into reservation queue.");
+                    "Book '" + book.getTitle() + "' is not available. " +
+                            "Please reserve the book to join the reservation queue.");
         }
 
         if (!member.canBorrow()) {
@@ -56,27 +72,49 @@ public class TransactionService implements TransactionInterface {
 
         Transaction transaction = new Transaction(member, book);
         book.addTransaction(transaction);
-        member.addTransaction(transaction); // optional, if Member tracks transactions
-
+        member.addTransaction(transaction);
 
         bookRepository.save(book);
         memberRepository.save(member);
         transactionRepository.save(transaction);
 
-        sendNotification(member, "You have successfully borrowed '" + book.getTitle() + "'. " +
-                "Due date: " + transaction.calculateDueDate(), NotificationType.BORROWED);
+        sendNotification(member,
+                "You have successfully borrowed '" + book.getTitle() + "'. " +
+                        "Due date: " + transaction.calculateDueDate(),
+                NotificationType.BORROWED);
 
-
-        return "Book borrowed successfully with transactionId : "
-                + transaction.getId()
-                + "\n"
-                + "Make sure to note the ID as it will be required when returning the book!";
+        return "Book borrowed successfully. Transaction ID: " + transaction.getId() +
+                "\nPlease note this ID — it is required when returning the book.";
     }
 
+    /**
+     * Fallback invoked when the bookService circuit breaker is OPEN,
+     * or when borrowBook throws an unexpected runtime exception that
+     * trips the breaker.
+     *
+     * NOTE: The fallback signature must match borrowBook exactly
+     * (same parameter types) with an additional Throwable/Exception parameter.
+     */
+    public String borrowBookFallback(Long bookId, Long memberId, Exception ex) {
+        log.error("Circuit breaker OPEN for borrowBook — bookId={}, memberId={}, reason={}",
+                bookId, memberId, ex.getMessage());
+        return "The borrowing service is temporarily unavailable. " +
+                "Please try again in a few moments. " +
+                "(Circuit breaker is open — too many recent failures detected.)";
+    }
+
+    /**
+     * Return a previously borrowed book.
+     *
+     * Circuit breaker "bookService" also guards return operations since
+     * they interact with the same book repository.
+     */
+    @CircuitBreaker(name = "bookService", fallbackMethod = "processReturnFallback")
     @Override
     public String processReturn(Long transactionId) {
         Transaction transaction = transactionRepository.findTransactionById(transactionId)
-                .orElseThrow(() -> new IllegalArgumentException("Transaction not found"));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Transaction not found with ID: " + transactionId));
 
         if (!transaction.isActive()) {
             throw new IllegalArgumentException(
@@ -87,30 +125,26 @@ public class TransactionService implements TransactionInterface {
         Book book = transaction.getBook();
         book.incrementCopies();
 
+        // Activate the next queued reservation if one exists
         List<Reservation> queuedReservations = book.getQueuedReservations();
-
         if (!queuedReservations.isEmpty()) {
+            Reservation firstQueued = queuedReservations.get(0);
+            Member reservingMember = firstQueued.getMember();
+            firstQueued.activate();
 
-            Reservation firstQueuedReservation = queuedReservations.get(0);
-            Member reservedMember = firstQueuedReservation.getMember();
-
-            firstQueuedReservation.activate();
             String reservationMessage = String.format(
-                    "Good news! The book '%s' you reserved is now available for pickup. " +
+                    "Great news! The book '%s' you reserved is now available for pickup. " +
                             "Please collect it within %d days (by %s) or your reservation will expire.",
                     book.getTitle(),
-                    firstQueuedReservation.getDaysUntilExpiry(),
-                    firstQueuedReservation.getExpiryDate()
-            );
+                    firstQueued.getDaysUntilExpiry(),
+                    firstQueued.getExpiryDate());
 
-            sendNotification(reservedMember, reservationMessage, NotificationType.RESERVATION_AVAILABLE);
-
-
+            sendNotification(reservingMember, reservationMessage,
+                    NotificationType.RESERVATION_AVAILABLE);
         }
 
         transaction.updateReturnedDate(LocalDateTime.now());
-        LocalDateTime transactionDueDate = transaction.calculateDueDate();
-
+        LocalDateTime dueDate = transaction.calculateDueDate();
         transaction.markReturned();
 
         NotificationType notificationType;
@@ -118,49 +152,48 @@ public class TransactionService implements TransactionInterface {
 
         if (transaction.isOverdue()) {
             Fine fine = transaction.calculateFine();
-
             message = String.format(
                     "Book '%s' returned LATE. Overdue fine: $%.2f (%.0f days late). " +
                             "Due date was: %s. Returned on: %s",
                     book.getTitle(),
                     fine.getAmount(),
-                    transaction.getDaysOverdue(),
-                    transactionDueDate,
-                    transaction.getReturnedDate()
-            );
+                    (double) transaction.getDaysOverdue(),
+                    dueDate,
+                    transaction.getReturnedDate());
             notificationType = NotificationType.OVERDUE;
-
-            log.info(" OVERDUE RETURN - Fine calculated: $" + fine.getAmount());
+            log.warn("OVERDUE RETURN — fine: ${}", fine.getAmount());
         } else {
             message = String.format(
                     "Book '%s' returned successfully ON TIME. " +
                             "Thank you for returning by the due date (%s)!",
-                    book.getTitle(),
-                    transactionDueDate
-            );
+                    book.getTitle(), dueDate);
             notificationType = NotificationType.RETURNED;
-
-            log.info(" ON-TIME RETURN - No fine");
+            log.info("ON-TIME RETURN — no fine");
         }
-        Member member = transaction.getMember();
 
+        Member member = transaction.getMember();
         bookRepository.save(book);
         memberRepository.save(member);
         transactionRepository.save(transaction);
 
-
         sendNotification(member, message, notificationType);
-
         return message;
-
     }
 
-    private void sendNotification(Member member, String message, NotificationType notificationType) {
-        Notification notification = new Notification(
-                member,
-                message,
-                notificationType
-        );
+    /**
+     * Fallback for processReturn when the circuit is open.
+     */
+    public String processReturnFallback(Long transactionId, Exception ex) {
+        log.error("Circuit breaker OPEN for processReturn — transactionId={}, reason={}",
+                transactionId, ex.getMessage());
+        return "The return service is temporarily unavailable. " +
+                "Please try again in a few moments.";
+    }
+
+    // ── Private helpers ──────────────────────────────────────────────────────
+
+    private void sendNotification(Member member, String message, NotificationType type) {
+        Notification notification = new Notification(member, message, type);
         notificationManager.notifyObservers(notification);
     }
 }
