@@ -2,14 +2,14 @@ package com.teamoffour.lms.service;
 
 import com.teamoffour.lms.domain.Book;
 import com.teamoffour.lms.domain.Member;
-import com.teamoffour.lms.domain.Notification;
 import com.teamoffour.lms.domain.Reservation;
 import com.teamoffour.lms.domain.enums.NotificationType;
 import com.teamoffour.lms.domain.enums.ReservationStatus;
 import com.teamoffour.lms.repository.BookRepository;
 import com.teamoffour.lms.repository.MemberRepository;
 import com.teamoffour.lms.repository.ReservationRepository;
-import com.teamoffour.lms.service.observer.NotificationManager;
+import com.teamoffour.lms.rest.NotificationServiceREST;
+import com.teamoffour.lms.service.dto.NotificationEventDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -22,14 +22,14 @@ public class ReservationService implements ReservationInterface {
     private final MemberRepository memberRepository;
     private final BookRepository bookRepository;
     private final ReservationRepository reservationRepository;
-    private final NotificationManager notificationManager;
+    private final NotificationServiceREST notificationServiceREST;
 
     public ReservationService(MemberRepository memberRepository, BookRepository bookRepository,
-                              ReservationRepository reservationRepository, NotificationManager notificationManager) {
+                              ReservationRepository reservationRepository, NotificationServiceREST notificationServiceREST) {
         this.memberRepository = memberRepository;
         this.bookRepository = bookRepository;
         this.reservationRepository = reservationRepository;
-        this.notificationManager = notificationManager;
+        this.notificationServiceREST = notificationServiceREST;
     }
 
     @Override
@@ -82,13 +82,9 @@ public class ReservationService implements ReservationInterface {
                 queuePosition
         );
 
-        Notification notification = new Notification(
-                member,
-                message,
-                NotificationType.RESERVATION_CREATED
-        );
 
-        notificationManager.notifyObservers(notification);
+        sendNotification(member, message, NotificationType.RESERVATION_CREATED);
+
         log.info(" Reservation confirmation sent");
 
         // 9. Return response
@@ -143,5 +139,18 @@ public class ReservationService implements ReservationInterface {
                     memberRepository.save(member);
                     bookRepository.save(book);
                 });
+    }
+
+
+    private void sendNotification(Member member, String message, NotificationType type) {
+        NotificationEventDTO notification = new NotificationEventDTO(
+                member.getId(),
+                member.getEmailId(),
+                member.getPhoneNumber(),
+                message,
+                type.name()
+        );
+
+        notificationServiceREST.publish(notification);
     }
 }

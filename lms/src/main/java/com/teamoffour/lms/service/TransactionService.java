@@ -5,7 +5,8 @@ import com.teamoffour.lms.domain.enums.NotificationType;
 import com.teamoffour.lms.repository.BookRepository;
 import com.teamoffour.lms.repository.MemberRepository;
 import com.teamoffour.lms.repository.TransactionRepository;
-import com.teamoffour.lms.service.observer.NotificationManager;
+import com.teamoffour.lms.rest.NotificationServiceREST;
+import com.teamoffour.lms.service.dto.NotificationEventDTO;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,17 +23,17 @@ public class TransactionService implements TransactionInterface {
     private final MemberRepository memberRepository;
     private final BookRepository bookRepository;
     private final TransactionRepository transactionRepository;
-    private final NotificationManager notificationManager;
+    private final NotificationServiceREST notificationServiceREST;
 
     @Autowired
     public TransactionService(MemberRepository memberRepository,
                               BookRepository bookRepository,
                               TransactionRepository transactionRepository,
-                              NotificationManager notificationManager) {
+                              NotificationServiceREST notificationServiceREST) {
         this.memberRepository = memberRepository;
         this.bookRepository = bookRepository;
         this.transactionRepository = transactionRepository;
-        this.notificationManager = notificationManager;
+        this.notificationServiceREST = notificationServiceREST;
     }
 
     /**
@@ -193,7 +194,14 @@ public class TransactionService implements TransactionInterface {
     // ── Private helpers ──────────────────────────────────────────────────────
 
     private void sendNotification(Member member, String message, NotificationType type) {
-        Notification notification = new Notification(member, message, type);
-        notificationManager.notifyObservers(notification);
+        NotificationEventDTO notification = new NotificationEventDTO(
+                member.getId(),
+                member.getEmailId(),
+                member.getPhoneNumber(),
+                message,
+                type.name()
+        );
+
+        notificationServiceREST.publish(notification);
     }
 }
