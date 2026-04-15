@@ -36,18 +36,7 @@ public class TransactionService implements TransactionInterface {
         this.notificationServiceREST = notificationServiceREST;
     }
 
-    /**
-     * Borrow a book for a member.
-     * <p>
-     * Circuit breaker "bookService" guards the book repository interaction.
-     * If the repository call fails (e.g. database unreachable in a future
-     * persistent implementation), the circuit opens and the fallback is invoked
-     * rather than letting errors cascade.
-     * <p>
-     * States: CLOSED → OPEN (after 50% failures in 5-call window)
-     * OPEN   → HALF_OPEN (after 10 s wait)
-     * HALF_OPEN → CLOSED (if 2 trial calls succeed)
-     */
+
     @CircuitBreaker(name = "bookService", fallbackMethod = "borrowBookFallback")
     @Override
     public String borrowBook(Long bookId, Long memberId) throws ServerException {
@@ -88,14 +77,7 @@ public class TransactionService implements TransactionInterface {
                 "\nPlease note this ID — it is required when returning the book.";
     }
 
-    /**
-     * Fallback invoked when the bookService circuit breaker is OPEN,
-     * or when borrowBook throws an unexpected runtime exception that
-     * trips the breaker.
-     * <p>
-     * NOTE: The fallback signature must match borrowBook exactly
-     * (same parameter types) with an additional Throwable/Exception parameter.
-     */
+
     public String borrowBookFallback(Long bookId, Long memberId, Exception ex) {
         log.error("Circuit breaker OPEN for borrowBook — bookId={}, memberId={}, reason={}",
                 bookId, memberId, ex.getMessage());
