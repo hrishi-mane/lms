@@ -163,6 +163,11 @@ public class TransactionService implements TransactionInterface {
         return message;
     }
 
+    @Override
+    public List<Transaction> getAllTransactions() {
+        return transactionRepository.findAll();
+    }
+
     /**
      * Fallback for processReturn when the circuit is open.
      */

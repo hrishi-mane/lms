@@ -1,5 +1,6 @@
 package com.teamoffour.lms.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.teamoffour.lms.domain.enums.TransactionStatus;
 import lombok.Data;
 import org.slf4j.Logger;
@@ -18,6 +19,8 @@ public class Transaction {
     private LocalDateTime borrowDate;
     private LocalDateTime returnedDate;
     private TransactionStatus transactionStatus;
+
+    @JsonIgnore
     private Member member;
     private Book book;
 

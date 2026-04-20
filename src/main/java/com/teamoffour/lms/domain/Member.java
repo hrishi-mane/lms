@@ -1,5 +1,6 @@
 package com.teamoffour.lms.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.teamoffour.lms.domain.enums.TransactionStatus;
 import com.teamoffour.lms.service.strategy.IMembershipPlan;
 import lombok.Data;
@@ -19,6 +20,8 @@ public class Member {
     private LocalDate membershipStartDate;
     private LocalDate membershipEndDate;
     private IMembershipPlan membershipPlan;
+
+    @JsonIgnore
     private List<Transaction> transactions;
     private List<Reservation> reservations;
     private List<Notification> notifications;

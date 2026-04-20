@@ -9,6 +9,8 @@ import com.teamoffour.lms.service.strategy.IMembershipPlan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class MemberService implements MemberInterface {
     private final MemberRepository memberRepository;
@@ -38,5 +40,10 @@ public class MemberService implements MemberInterface {
                 + "\n"
                 + "Total Cost of the Plan "
                 + member.getMembershipPlan().getCost();
+    }
+
+    @Override
+    public List<Member> getAllMembers() {
+        return memberRepository.findAll();
     }
 }
