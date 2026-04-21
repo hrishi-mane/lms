@@ -27,7 +27,7 @@ public class Member {
     private List<Notification> notifications;
 
     public Member() {
-        this.id = Long.valueOf(String.valueOf(new Random().nextLong() * 1_000_000_0000L));
+        this.id = Math.abs(new Random().nextLong() % 900_000_000_000_000L);
         transactions = new ArrayList<>();
         reservations = new ArrayList<>();
         notifications = new ArrayList<>();

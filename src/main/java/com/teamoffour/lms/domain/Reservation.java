@@ -21,7 +21,7 @@ public class Reservation {
     private ReservationStatus status;
 
     public Reservation(Member member, Book book) {
-        this.id = Long.valueOf(String.valueOf(new Random().nextLong() * 1_000_000_0000L));
+        this.id = Math.abs(new Random().nextLong() % 900_000_000_000_000L);
         this.member = member;
         this.book = book;
         this.reservationDate = LocalDate.now();

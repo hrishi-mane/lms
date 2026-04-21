@@ -22,10 +22,12 @@ public class Transaction {
 
     @JsonIgnore
     private Member member;
+
+    @JsonIgnore
     private Book book;
 
     public Transaction(Member member, Book book) {
-        id = (new Random().nextLong() * 1_000_000_0000L);
+        this.id = Math.abs(new Random().nextLong() % 900_000_000_000_000L);
         this.borrowDate = LocalDateTime.now();
         this.transactionStatus = TransactionStatus.ACTIVE;
         this.member = member;

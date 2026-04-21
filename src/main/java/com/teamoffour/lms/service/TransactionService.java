@@ -7,6 +7,7 @@ import com.teamoffour.lms.repository.MemberRepository;
 import com.teamoffour.lms.repository.TransactionRepository;
 import com.teamoffour.lms.rest.NotificationServiceREST;
 import com.teamoffour.lms.service.dto.NotificationEventDTO;
+import com.teamoffour.lms.service.dto.TransactionDTO;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -164,8 +165,27 @@ public class TransactionService implements TransactionInterface {
     }
 
     @Override
-    public List<Transaction> getAllTransactions() {
-        return transactionRepository.findAll();
+    public List<TransactionDTO> getAllTransactions() {
+        return transactionRepository.findAll().stream()
+                .map(this::toTransactionDTO)
+                .toList();
+    }
+
+    private TransactionDTO toTransactionDTO(Transaction t) {
+        TransactionDTO dto = new TransactionDTO();
+        dto.setId(t.getId());
+        dto.setBookId(t.getBook().getId());
+        dto.setBookTitle(t.getBook().getTitle());
+        dto.setBookIsbn(t.getBook().getIsbn());
+        dto.setMemberId(t.getMember().getId());
+        dto.setMemberUserName(t.getMember().getUserName());
+        dto.setBorrowDate(t.getBorrowDate());
+        dto.setReturnedDate(t.getReturnedDate());
+        dto.setDueDate(t.calculateDueDate());
+        dto.setTransactionStatus(t.getTransactionStatus());
+        dto.setOverdue(t.isOverdue());
+        dto.setDaysOverdue(t.getDaysOverdue());
+        return dto;
     }
 
     /**

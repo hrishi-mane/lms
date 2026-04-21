@@ -10,6 +10,7 @@ import com.teamoffour.lms.repository.MemberRepository;
 import com.teamoffour.lms.repository.ReservationRepository;
 import com.teamoffour.lms.rest.NotificationServiceREST;
 import com.teamoffour.lms.service.dto.NotificationEventDTO;
+import com.teamoffour.lms.service.dto.ReservationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -141,6 +142,28 @@ public class ReservationService implements ReservationInterface {
                 });
     }
 
+
+    @Override
+    public List<ReservationDTO> getAllReservations() {
+        return reservationRepository.findAll().stream()
+                .map(this::toReservationDTO)
+                .toList();
+    }
+
+    private ReservationDTO toReservationDTO(Reservation r) {
+        ReservationDTO dto = new ReservationDTO();
+        dto.setId(r.getId());
+        dto.setBookId(r.getBook().getId());
+        dto.setBookTitle(r.getBook().getTitle());
+        dto.setBookIsbn(r.getBook().getIsbn());
+        dto.setMemberId(r.getMember().getId());
+        dto.setMemberUserName(r.getMember().getUserName());
+        dto.setReservationDate(r.getReservationDate());
+        dto.setExpiryDate(r.getExpiryDate());
+        dto.setStatus(r.getStatus());
+        dto.setDaysUntilExpiry(r.getDaysUntilExpiry());
+        return dto;
+    }
 
     private void sendNotification(Member member, String message, NotificationType type) {
         NotificationEventDTO notification = new NotificationEventDTO(

@@ -1,13 +1,12 @@
 package com.teamoffour.lms.controller;
 
 import com.teamoffour.lms.service.ReservationInterface;
+import com.teamoffour.lms.service.dto.ReservationDTO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.rmi.ServerException;
+import java.util.List;
 
 
 @RestController
@@ -34,5 +33,10 @@ public class ReservationController {
     @PostMapping("/lms/expireActiveReservations")
     public void expireActiveReservations() {
         reservationInterface.expireActiveReservations();
+    }
+
+    @GetMapping("/lms/getAllReservations")
+    public List<ReservationDTO> getAllReservations() {
+        return reservationInterface.getAllReservations();
     }
 }

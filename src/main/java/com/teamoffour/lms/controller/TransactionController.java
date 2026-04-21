@@ -1,7 +1,7 @@
 package com.teamoffour.lms.controller;
 
-import com.teamoffour.lms.domain.Transaction;
 import com.teamoffour.lms.service.TransactionInterface;
+import com.teamoffour.lms.service.dto.TransactionDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,7 +33,7 @@ public class TransactionController {
 
 
     @GetMapping(value = "/lms/getAllTransactions")
-    public List<Transaction> getAllTransactions() {
+    public List<TransactionDTO> getAllTransactions() {
         return transactionInterface.getAllTransactions();
     }
 

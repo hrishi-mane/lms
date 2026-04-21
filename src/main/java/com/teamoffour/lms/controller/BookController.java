@@ -1,12 +1,12 @@
 package com.teamoffour.lms.controller;
 
-import com.teamoffour.lms.domain.Book;
 import com.teamoffour.lms.mapper.BookMapper;
 import com.teamoffour.lms.repository.BookRepository;
 import com.teamoffour.lms.service.command.AddBookCommand;
 import com.teamoffour.lms.service.command.CommandManager;
 import com.teamoffour.lms.service.command.RemoveBookCommand;
 import com.teamoffour.lms.service.dto.AddBookRequest;
+import com.teamoffour.lms.service.dto.BookDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,8 +30,10 @@ public class BookController {
     }
 
     @GetMapping(value = "/lms/getAllBooks")
-    public List<Book> getAllBooks() {
-        return bookRepository.getAllBooks();
+    public List<BookDTO> getAllBooks() {
+        return bookRepository.getAllBooks().stream()
+                .map(bookMapper::toBookDTO)
+                .toList();
     }
 
     @PostMapping(value = "/lms/addBook")

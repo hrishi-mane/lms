@@ -21,12 +21,18 @@ public class Book {
     private String category;
     private Integer publicationYear;
     private Integer copiesAvailable;
+
+    @JsonIgnore
     private List<Reservation> reservations;
+
+    @JsonIgnore
     private List<Transaction> transactions;
+
     private State currentState;
 
     public Book() {
-        this.id = (new Random().nextLong() * 1_000_000_0000L);
+        this.id = Math.abs(new Random().nextLong() % 900_000_000_000_000L);
+        ;
         reservations = new ArrayList<>();
         transactions = new ArrayList<>();
         currentState = new Available();

@@ -4,6 +4,7 @@ import com.teamoffour.lms.domain.Member;
 import com.teamoffour.lms.mapper.MemberMapper;
 import com.teamoffour.lms.repository.MemberRepository;
 import com.teamoffour.lms.service.decorator.ExtendedBorrowingDecorator;
+import com.teamoffour.lms.service.dto.MemberDTO;
 import com.teamoffour.lms.service.dto.RegisterMemberRequest;
 import com.teamoffour.lms.service.strategy.IMembershipPlan;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +44,9 @@ public class MemberService implements MemberInterface {
     }
 
     @Override
-    public List<Member> getAllMembers() {
-        return memberRepository.findAll();
+    public List<MemberDTO> getAllMembers() {
+        return memberRepository.findAll().stream()
+                .map(memberMapper::toMemberDTO)
+                .toList();
     }
 }

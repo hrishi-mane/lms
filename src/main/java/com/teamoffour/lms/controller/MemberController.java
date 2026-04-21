@@ -1,8 +1,8 @@
 package com.teamoffour.lms.controller;
 
 
-import com.teamoffour.lms.domain.Member;
 import com.teamoffour.lms.service.MemberInterface;
+import com.teamoffour.lms.service.dto.MemberDTO;
 import com.teamoffour.lms.service.dto.RegisterMemberRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,7 +30,7 @@ public class MemberController {
 
 
     @GetMapping(value = "/lms/getAllMembers")
-    public List<Member> getAllMembers() {
+    public List<MemberDTO> getAllMembers() {
         return memberInterface.getAllMembers();
     }
 

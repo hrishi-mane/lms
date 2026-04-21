@@ -1,6 +1,6 @@
 package com.teamoffour.lms.service;
 
-import com.teamoffour.lms.domain.Transaction;
+import com.teamoffour.lms.service.dto.TransactionDTO;
 
 import java.rmi.ServerException;
 import java.util.List;
@@ -10,6 +10,6 @@ public interface TransactionInterface {
 
     String processReturn(Long transactionId);
 
-    List<Transaction> getAllTransactions();
+    List<TransactionDTO> getAllTransactions();
 
 }
