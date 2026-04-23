@@ -3,11 +3,13 @@ package com.teamoffour.lms.service;
 import com.teamoffour.lms.domain.Book;
 import com.teamoffour.lms.domain.Member;
 import com.teamoffour.lms.domain.Reservation;
+import com.teamoffour.lms.domain.Transaction;
 import com.teamoffour.lms.domain.enums.NotificationType;
 import com.teamoffour.lms.domain.enums.ReservationStatus;
 import com.teamoffour.lms.repository.BookRepository;
 import com.teamoffour.lms.repository.MemberRepository;
 import com.teamoffour.lms.repository.ReservationRepository;
+import com.teamoffour.lms.repository.TransactionRepository;
 import com.teamoffour.lms.rest.NotificationServiceREST;
 import com.teamoffour.lms.service.dto.NotificationEventDTO;
 import com.teamoffour.lms.service.dto.ReservationDTO;
@@ -24,13 +26,15 @@ public class ReservationService implements ReservationInterface {
     private final BookRepository bookRepository;
     private final ReservationRepository reservationRepository;
     private final NotificationServiceREST notificationServiceREST;
+    private final TransactionRepository transactionRepository;
 
     public ReservationService(MemberRepository memberRepository, BookRepository bookRepository,
-                              ReservationRepository reservationRepository, NotificationServiceREST notificationServiceREST) {
+                              ReservationRepository reservationRepository, NotificationServiceREST notificationServiceREST, TransactionRepository transactionRepository) {
         this.memberRepository = memberRepository;
         this.bookRepository = bookRepository;
         this.reservationRepository = reservationRepository;
         this.notificationServiceREST = notificationServiceREST;
+        this.transactionRepository = transactionRepository;
     }
 
     @Override
@@ -98,29 +102,65 @@ public class ReservationService implements ReservationInterface {
 
     @Override
     public String processReservationPickup(Long reservationId) throws ServerException {
+        // 1. Find the reservation
         Reservation reservation = reservationRepository.findReservationById(reservationId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Reservation not found with ID: " + reservationId));
 
+        // 2. Validate reservation is ACTIVE (member was notified and came to pick up)
+        if (!reservation.isActive()) {
+            throw new IllegalArgumentException(
+                    "Reservation #" + reservationId + " cannot be fulfilled. " +
+                            "Expected status: ACTIVE, Current status: " + reservation.getStatus());
+        }
 
-        reservation.fulfill();
-
-        reservationRepository.save(reservation);
         Member member = reservation.getMember();
         Book book = reservation.getBook();
 
+        // 3. Check the book actually has copies available
         if (!book.isAvailable()) {
             throw new ServerException(
-                    "Book '" + book.getTitle() + "' is not available. Status: " + book.getCurrentState().getStateName());
+                    "Book '" + book.getTitle() + "' is not available for pickup. " +
+                            "Status: " + book.getCurrentState().getStateName());
         }
 
+        // 4. Check member hasn't exceeded their borrowing limit
+        if (!member.canBorrow()) {
+            throw new ServerException(
+                    "Member has exceeded their borrowing limit. " +
+                            "Current: " + member.getActiveBorrowCount() +
+                            ", Limit: " + member.getMembershipPlan().getBorrowingPolicy().getBorrowingLimit());
+        }
+
+        // 5. Decrement book copies (transitions to Unavailable state if copies hit 0)
+        book.decrementCopies();
+
+        // 6. Create the transaction — this is an actual borrow
+        Transaction transaction = new Transaction(member, book);
+        book.addTransaction(transaction);
+        member.addTransaction(transaction);
+
+        // 7. Fulfill the reservation
+        reservation.fulfill();
+
+        // 8. Sync reservation state back to member and book
         member.updateReservation(reservation);
         book.updateReservation(reservation);
 
+        // 9. Persist everything
+        transactionRepository.save(transaction);
         bookRepository.save(book);
         memberRepository.save(member);
+        reservationRepository.save(reservation);
 
-        return "Reservation fulfilled. Book borrowing successfull.";
+        // 10. Notify the member
+        sendNotification(member,
+                "You have successfully picked up '" + book.getTitle() + "'. " +
+                        "Due date: " + transaction.calculateDueDate(),
+                NotificationType.BORROWED);
+
+        return "Reservation fulfilled successfully. Transaction ID: " + transaction.getId() +
+                "\nPlease note this ID — it is required when returning the book.";
     }
 
     @Override

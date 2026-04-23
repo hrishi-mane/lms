@@ -2,19 +2,25 @@ package com.teamoffour.lms.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.teamoffour.lms.domain.enums.TransactionStatus;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Random;
 
-@Data
+@Getter
+@Setter
+@ToString(exclude = {"member", "book"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Transaction {
     private static final Logger log = LoggerFactory.getLogger(Transaction.class);
 
+    @EqualsAndHashCode.Include
     private Long id;
     private LocalDateTime borrowDate;
     private LocalDateTime returnedDate;
@@ -44,7 +50,7 @@ public class Transaction {
 
     public long getDaysOverdue() {
         if (isOverdue()) {
-            return ChronoUnit.DAYS.between(calculateDueDate(), LocalDate.now());
+            return ChronoUnit.DAYS.between(calculateDueDate(), LocalDateTime.now());
         }
         return 0;
     }

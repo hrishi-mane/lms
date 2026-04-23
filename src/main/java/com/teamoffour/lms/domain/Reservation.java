@@ -1,18 +1,27 @@
 package com.teamoffour.lms.domain;
 
 import com.teamoffour.lms.domain.enums.ReservationStatus;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Random;
 
-@Data
+@Getter
+@Setter
+@ToString(exclude = {"member", "book"})   // prevent infinite recursion
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Reservation {
     private static final Logger log = LoggerFactory.getLogger(Reservation.class);
     private static final int RESERVATION_VALIDITY_DAYS = 2;
+
+    @EqualsAndHashCode.Include
     private Long id;
     private Member member;
     private Book book;
@@ -39,7 +48,7 @@ public class Reservation {
     }
 
     public boolean isExpired() {
-        return LocalDate.now().isAfter(expiryDate);
+        return expiryDate != null && LocalDate.now().isAfter(expiryDate);
     }
 
     public boolean isActive() {
@@ -70,9 +79,12 @@ public class Reservation {
     }
 
     public long getDaysUntilExpiry() {
+        if (expiryDate == null) {
+            return 0;
+        }
         if (isExpired()) {
             return 0;
         }
-        return java.time.temporal.ChronoUnit.DAYS.between(LocalDate.now(), expiryDate);
+        return ChronoUnit.DAYS.between(LocalDate.now(), expiryDate);
     }
 }

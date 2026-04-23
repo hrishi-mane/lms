@@ -3,15 +3,23 @@ package com.teamoffour.lms.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.teamoffour.lms.domain.enums.TransactionStatus;
 import com.teamoffour.lms.service.strategy.IMembershipPlan;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-@Data
+@Getter
+@Setter
+@ToString(exclude = {"transactions", "reservations", "notifications", "membershipPlan"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Member {
+
+    @EqualsAndHashCode.Include
     private Long id;
     private String userName;
     private String password;

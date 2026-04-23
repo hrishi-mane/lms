@@ -5,15 +5,23 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.teamoffour.lms.domain.bookstates.Available;
 import com.teamoffour.lms.domain.bookstates.Lost;
 import com.teamoffour.lms.domain.bookstates.State;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-@Data
+@Getter
+@Setter
+@ToString(exclude = {"reservations", "transactions", "currentState"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Book {
+
+    @EqualsAndHashCode.Include
     private Long id;
     private String isbn;
     private String title;
