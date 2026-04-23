@@ -24,6 +24,10 @@ public class Unavailable implements State {
     @Override
     public void incrementCopies(Book book) {
         int availableCopies = book.getCopiesAvailable() + 1;
+
+        if (availableCopies > 0) {
+            book.setCurrentState(new Available());
+        }
         book.setCopiesAvailable(availableCopies);
     }
 
