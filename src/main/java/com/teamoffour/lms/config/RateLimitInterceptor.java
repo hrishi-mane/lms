@@ -8,18 +8,19 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Component
 @Slf4j
 public class RateLimitInterceptor implements HandlerInterceptor {
 
     private static final int MAX_REQUESTS_PER_MINUTE = 20;
-    private static final long TIME_WINDOW_MS = 60000; // 1 minute
-    private final Map<String, List<Long>> requestTimestamps = new ConcurrentHashMap<>();
+    private static final long TIME_WINDOW_MS = 60_000L;
+    private static final int MAX_TRACKED_CLIENTS = 500; // prevent unbounded growth
+
+    private final ConcurrentHashMap<String, CopyOnWriteArrayList<Long>> requestTimestamps
+            = new ConcurrentHashMap<>();
 
     @Override
     public boolean preHandle(HttpServletRequest request,
@@ -28,60 +29,44 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         String clientId = request.getRemoteAddr();
 
         if (isRateLimitExceeded(clientId)) {
-            response.setStatus(429); // Too Many Requests
+            response.setStatus(429);
             response.setContentType("application/json");
-            response.getWriter().write(
-                    "{\"error\": \"Rate limit exceeded. Try again later.\"}"
-            );
-            return false; // Block request
+            response.getWriter().write("{\"error\": \"Rate limit exceeded. Try again later.\"}");
+            return false;
         }
 
-        recordRequest(clientId); //Record this request
-        return true; // Allow request
+        recordRequest(clientId);
+        return true;
     }
 
     private boolean isRateLimitExceeded(String clientId) {
-        List<Long> timestamps = requestTimestamps.getOrDefault(
-                clientId,
-                new ArrayList<>()
-        );
+        CopyOnWriteArrayList<Long> timestamps = requestTimestamps.get(clientId);
+        if (timestamps == null) return false;
 
-        // Remove timestamps older than 1 minute
-        long oneMinuteAgo = System.currentTimeMillis() - TIME_WINDOW_MS;
-        timestamps.removeIf(timestamp -> timestamp < oneMinuteAgo);
-
-        // Check if limit exceeded
-        return timestamps.size() >= MAX_REQUESTS_PER_MINUTE;
+        long cutoff = System.currentTimeMillis() - TIME_WINDOW_MS;
+        long recentCount = timestamps.stream().filter(t -> t >= cutoff).count();
+        return recentCount >= MAX_REQUESTS_PER_MINUTE;
     }
 
     private void recordRequest(String clientId) {
-        List<Long> timestamps = requestTimestamps.computeIfAbsent(
-                clientId,
-                k -> new ArrayList<>()
-        );
+        // Evict oldest client if map is getting too large
+        if (!requestTimestamps.containsKey(clientId)
+                && requestTimestamps.size() >= MAX_TRACKED_CLIENTS) {
+            requestTimestamps.keys().nextElement(); // get any key
+            String oldest = requestTimestamps.keys().nextElement();
+            requestTimestamps.remove(oldest);
+        }
 
-        timestamps.add(System.currentTimeMillis());
-
-        // Optional: Log rate limit usage
-        log.debug("Client {} - Request count in last minute: {}",
-                clientId, timestamps.size());
+        requestTimestamps.computeIfAbsent(clientId, k -> new CopyOnWriteArrayList<>())
+                .add(System.currentTimeMillis());
     }
 
-
-    @Scheduled(fixedRate = 300000) // Run every 5 minutes
+    @Scheduled(fixedRate = 300_000) // every 5 minutes
     public void cleanupOldEntries() {
-        long fiveMinutesAgo = System.currentTimeMillis() - 300000;
-
+        long cutoff = System.currentTimeMillis() - TIME_WINDOW_MS;
         requestTimestamps.forEach((clientId, timestamps) ->
-                timestamps.removeIf(timestamp -> timestamp < fiveMinutesAgo)
-        );
-
-        // Remove empty entries
-        requestTimestamps.entrySet().removeIf(
-                entry -> entry.getValue().isEmpty()
-        );
-
-        log.info("Rate limiter cleanup completed. Active clients: {}",
-                requestTimestamps.size());
+                timestamps.removeIf(t -> t < cutoff));
+        requestTimestamps.entrySet().removeIf(e -> e.getValue().isEmpty());
+        log.debug("Rate limiter cleanup done. Active clients: {}", requestTimestamps.size());
     }
 }
