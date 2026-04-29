@@ -6,7 +6,6 @@ import com.teamoffour.lms.repository.BookRepository;
 import com.teamoffour.lms.repository.MemberRepository;
 import com.teamoffour.lms.repository.TransactionRepository;
 import com.teamoffour.lms.rest.NotificationServiceREST;
-import com.teamoffour.lms.service.dto.NotificationEventDTO;
 import com.teamoffour.lms.service.dto.TransactionDTO;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.extern.slf4j.Slf4j;
@@ -201,13 +200,13 @@ public class TransactionService implements TransactionInterface {
     // ── Private helpers ──────────────────────────────────────────────────────
 
     private void sendNotification(Member member, String message, NotificationType type) {
-        NotificationEventDTO notification = new NotificationEventDTO(
-                member.getId(),
-                member.getEmailId(),
-                message,
-                type.name()
-        );
-
-        notificationServiceREST.publish(notification);
+//        NotificationEventDTO notification = new NotificationEventDTO(
+//                member.getId(),
+//                member.getEmailId(),
+//                message,
+//                type.name()
+//        );
+//
+//        notificationServiceREST.publish(notification);
     }
 }
