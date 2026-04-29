@@ -2,6 +2,7 @@ package com.teamoffour.lms.service;
 
 import com.teamoffour.lms.domain.*;
 import com.teamoffour.lms.domain.enums.NotificationType;
+import com.teamoffour.lms.exception.BusinessException;
 import com.teamoffour.lms.repository.BookRepository;
 import com.teamoffour.lms.repository.MemberRepository;
 import com.teamoffour.lms.repository.TransactionRepository;
@@ -12,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.rmi.ServerException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -39,7 +39,7 @@ public class TransactionService implements TransactionInterface {
 
     @CircuitBreaker(name = "bookService", fallbackMethod = "borrowBookFallback")
     @Override
-    public String borrowBook(Long bookId, Long memberId) throws ServerException {
+    public String borrowBook(Long bookId, Long memberId) {
         Member member = memberRepository.findMemberById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("Member not found with ID: " + memberId));
 
@@ -47,13 +47,13 @@ public class TransactionService implements TransactionInterface {
                 .orElseThrow(() -> new IllegalArgumentException("Book not found with ID: " + bookId));
 
         if (!book.isAvailable() || book.hasAnyOngoingReservation()) {
-            throw new ServerException(
+            throw new BusinessException(
                     "Book '" + book.getTitle() + "' is not available. " +
                             "Please reserve the book to join the reservation queue.");
         }
 
         if (!member.canBorrow()) {
-            throw new ServerException(
+            throw new BusinessException(
                     "Borrowing limit exceeded. Current: " + member.getActiveBorrowCount() +
                             ", Limit: " + member.getMembershipPlan().getBorrowingPolicy().getBorrowingLimit());
         }

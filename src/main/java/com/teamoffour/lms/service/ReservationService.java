@@ -6,6 +6,7 @@ import com.teamoffour.lms.domain.Reservation;
 import com.teamoffour.lms.domain.Transaction;
 import com.teamoffour.lms.domain.enums.NotificationType;
 import com.teamoffour.lms.domain.enums.ReservationStatus;
+import com.teamoffour.lms.exception.BusinessException;
 import com.teamoffour.lms.repository.BookRepository;
 import com.teamoffour.lms.repository.MemberRepository;
 import com.teamoffour.lms.repository.ReservationRepository;
@@ -16,7 +17,6 @@ import com.teamoffour.lms.service.dto.ReservationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.rmi.ServerException;
 import java.util.List;
 
 @Service
@@ -101,7 +101,7 @@ public class ReservationService implements ReservationInterface {
     }
 
     @Override
-    public String processReservationPickup(Long reservationId) throws ServerException {
+    public String processReservationPickup(Long reservationId) {
         // 1. Find the reservation
         Reservation reservation = reservationRepository.findReservationById(reservationId)
                 .orElseThrow(() -> new IllegalArgumentException(
@@ -119,14 +119,14 @@ public class ReservationService implements ReservationInterface {
 
         // 3. Check the book actually has copies available
         if (!book.isAvailable()) {
-            throw new ServerException(
+            throw new BusinessException(
                     "Book '" + book.getTitle() + "' is not available for pickup. " +
                             "Status: " + book.getCurrentState().getStateName());
         }
 
         // 4. Check member hasn't exceeded their borrowing limit
         if (!member.canBorrow()) {
-            throw new ServerException(
+            throw new BusinessException(
                     "Member has exceeded their borrowing limit. " +
                             "Current: " + member.getActiveBorrowCount() +
                             ", Limit: " + member.getMembershipPlan().getBorrowingPolicy().getBorrowingLimit());

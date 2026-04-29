@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.rmi.ServerException;
 import java.util.List;
 
 @RestController
@@ -22,7 +21,7 @@ public class TransactionController {
     }
 
     @GetMapping(value = "/lms/borrowBook/")
-    public String borrowBook(@RequestParam("book_id") Long bookId, @RequestParam("member_id") Long memberId) throws ServerException {
+    public String borrowBook(@RequestParam("book_id") Long bookId, @RequestParam("member_id") Long memberId) {
         return transactionInterface.borrowBook(bookId, memberId);
     }
 

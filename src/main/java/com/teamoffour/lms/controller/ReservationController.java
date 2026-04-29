@@ -5,7 +5,6 @@ import com.teamoffour.lms.service.dto.ReservationDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.rmi.ServerException;
 import java.util.List;
 
 
@@ -26,7 +25,7 @@ public class ReservationController {
     }
 
     @PostMapping("/lms/processReservationPickup/{reservationId}")
-    public String processReservationPickup(@PathVariable Long reservationId) throws ServerException {
+    public String processReservationPickup(@PathVariable Long reservationId) {
         return reservationInterface.processReservationPickup(reservationId);
     }
 
