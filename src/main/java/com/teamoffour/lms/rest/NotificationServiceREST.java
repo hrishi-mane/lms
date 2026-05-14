@@ -5,6 +5,7 @@ import com.teamoffour.lms.service.dto.NotificationEventDTO;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -22,6 +23,7 @@ public class NotificationServiceREST {
 
 
     @Retry(name = "notificationService", fallbackMethod = "publishFallback")
+    @Async
     public void publish(NotificationEventDTO event) {
         try {
             restTemplate.postForEntity(
