@@ -94,6 +94,12 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- ── Retry ──────────────────────────────────────── -->
+        <dependency>
+            <groupId>org.springframework.retry</groupId>
+            <artifactId>spring-retry</artifactId>
+        </dependency>
     </dependencies>
 
     <!-- ── Spring Cloud BOM ─────────────────────────────────── -->
