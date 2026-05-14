@@ -1,5 +1,8 @@
 package com.teamoffour.lms.exception;
 
+import lombok.Getter;
+
+@Getter
 public class BusinessException extends RuntimeException {
 
     private final String errorCode;
@@ -19,7 +22,4 @@ public class BusinessException extends RuntimeException {
         this.errorCode = null;
     }
 
-    public String getErrorCode() {
-        return errorCode;
-    }
 }
